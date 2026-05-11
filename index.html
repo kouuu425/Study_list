@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>インプット型プロダクトバックログ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    /* ─── リセット & ベース ─────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #FAF8F4;
+      --bg-card:     #FFFFFF;
+      --accent:      #CC785C;
+      --accent-hover:#B5624A;
+      --text-primary:#1F1D18;
+      --text-sub:    #6B6150;
+      --text-done:   #9B9080;
+      --sand:        #E8DCCA;
+      --border:      #E5DED2;
+      --sage:        #7A9E7E;
+      --card-shadow: 0 1px 4px rgba(0,0,0,.06), 0 2px 12px rgba(0,0,0,.04);
+      --radius:      8px;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ─── レイアウト ────────────────────────────── */
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ─── ヘッダー ──────────────────────────────── */
+    .site-header {
+      padding: 56px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+
+    .header-eyebrow {
+      font-size: .75rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .site-title {
+      font-family: 'Noto Serif JP', Georgia, serif;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.3;
+      letter-spacing: -.01em;
+      margin-bottom: 10px;
+    }
+
+    .site-desc {
+      font-size: .95rem;
+      color: var(--text-sub);
+    }
+
+    /* ─── ツールバー ─────────────────────────────── */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: .8125rem;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-sub);
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    .btn:hover {
+      background: var(--sand);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn.is-active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--sand);
+    }
+
+    /* ─── PBIリスト ─────────────────────────────── */
+    .pbi-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 80px;
+    }
+
+    /* ─── PBIカード ─────────────────────────────── */
+    .pbi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      transition: box-shadow .2s ease-out, opacity .28s ease-out;
+    }
+    .pbi-card:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,.09), 0 4px 20px rgba(0,0,0,.06);
+    }
+
+    .pbi-card.is-open {
+      border-left: 3px solid var(--accent);
+    }
+
+    .pbi-card.is-done {
+      opacity: .72;
+    }
+    .pbi-card.is-done .pbi-title {
+      text-decoration: line-through;
+      text-decoration-color: var(--text-done);
+      color: var(--text-done);
+    }
+
+    /* ─── カードヘッダー ─────────────────────────── */
+    .pbi-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pbi-number-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+
+    /* カスタムチェックボックス */
+    .custom-checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color .15s, background .15s, transform .15s;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .pbi-number-area:hover .custom-checkbox {
+      border-color: var(--accent);
+      transform: scale(1.1);
+    }
+
+    .done-mark {
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .pbi-title-area { min-width: 0; }
+
+    .pbi-title {
+      font-family: 'Noto Serif JP', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+      transition: color .25s;
+    }
+
+    .pbi-chevron {
+      color: var(--text-sub);
+      transition: transform .25s ease-out, color .15s;
+      flex-shrink: 0;
+    }
+    .pbi-card.is-open .pbi-chevron {
+      transform: rotate(180deg);
+      color: var(--accent);
+    }
+
+    /* ─── アコーディオン(grid-template-rows アニメーション) ── */
+    .pbi-body-wrap {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows .28s ease-out;
+    }
+    .pbi-card.is-open .pbi-body-wrap {
+      grid-template-rows: 1fr;
+    }
+
+    .pbi-body {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .pbi-body-inner {
+      border-top: 1px solid var(--border);
+      padding: 24px 20px 24px 66px;
+    }
+
+    /* ─── 詳細コンテンツ ─────────────────────────── */
+    .detail-section {
+      margin-bottom: 24px;
+    }
+    .detail-section:last-child { margin-bottom: 0; }
+
+    .detail-heading {
+      font-size: .75rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    /* ステップリスト */
+    .step-list {
+      list-style: none;
+      counter-reset: step;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .step-list li {
+      font-size: .9rem;
+      color: var(--text-sub);
+      display: flex;
+      gap: 10px;
+      line-height: 1.6;
+      counter-increment: step;
+    }
+    .step-list li::before {
+      content: counter(step);
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: #F9EDE7;
+      border-radius: 50%;
+      min-width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* リンクグループ */
+    .link-group { margin-bottom: 14px; }
+    .link-group:last-child { margin-bottom: 0; }
+
+    .link-group-label {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .link-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .link-list a {
+      font-size: .875rem;
+      color: var(--text-sub);
+      text-decoration: underline;
+      text-decoration-color: var(--border);
+      text-underline-offset: 3px;
+      transition: color .15s, text-decoration-color .15s;
+      font-family: 'JetBrains Mono', monospace;
+      word-break: break-all;
+    }
+    .link-list a::after {
+      content: ' ↗';
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: .75em;
+      opacity: .7;
+    }
+    .link-list a:hover {
+      color: var(--accent);
+      text-decoration-color: var(--accent);
+    }
+
+    .link-plain {
+      font-size: .875rem;
+      color: var(--text-sub);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* 完了目安 */
+    .goal-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .goal-list li {
+      font-size: .875rem;
+      color: var(--text-sub);
+      display: flex;
+      gap: 8px;
+      line-height: 1.6;
+    }
+    .goal-list li::before {
+      content: '◦';
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ─── フッター ──────────────────────────────── */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      margin-top: 40px;
+      text-align: center;
+      font-size: .8125rem;
+      color: var(--text-sub);
+    }
+
+    /* ─── レスポンシブ ─────────────────────────── */
+    @media (max-width: 600px) {
+      .container { padding: 0 16px; }
+      .site-header { padding: 36px 0 28px; }
+      .pbi-header { padding: 14px 16px; gap: 10px; }
+      .pbi-body-inner { padding: 20px 16px 20px 50px; }
+      .pbi-title { font-size: .9375rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header class="site-header">
+    <p class="header-eyebrow">Learning Backlog</p>
+    <h1 class="site-title">インプット型プロダクトバックログ</h1>
+    <p class="site-desc">AWS・AI エージェント・テスト・フロントエンドの学習ロードマップを一覧管理します。</p>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn" id="btnExpandAll">▾ すべて展開</button>
+    <button class="btn" id="btnCollapseAll">▸ すべて折りたたみ</button>
+    <button class="btn" id="btnFilter">☰ 未完了のみ表示</button>
+    <button class="btn" id="btnReset">↺ リセット</button>
+  </div>
+
+  <main class="pbi-list" id="pbiList"></main>
+
+  <footer class="site-footer">
+    <p>データは <code>localStorage</code> に保存されます。ブラウザをリロードしても進捗が維持されます。</p>
+  </footer>
+
+</div>
+<script>
+'use strict';
+
+const STORAGE_KEY = 'pbl_v1';
+
+const DATA = [
+  {
+    id: 1,
+    title: 'Claude with Amazon Bedrock(Anthropic公式講座)',
+    done: true,
+    steps: [],
+    sources: [
+      { category: null, items: [
+        { label: 'anthropic.skilljar.com/claude-in-amazon-bedrock', url: 'https://anthropic.skilljar.com/claude-in-amazon-bedrock' }
+      ]}
+    ],
+    goals: []
+  },
+  {
+    id: 2,
+    title: 'Agent Skills(Anthropic公式講座)',
+    done: true,
+    steps: [],
+    sources: [
+      { category: null, items: [
+        { label: 'anthropic.skilljar.com/introduction-to-agent-skills', url: 'https://anthropic.skilljar.com/introduction-to-agent-skills' }
+      ]}
+    ],
+    goals: []
+  },
+  {
+    id: 3,
+    title: 'LLMOps × AWS AgentCore(上位概念と具体実装をセットで)',
+    done: false,
+    steps: [
+      'LLMOps の枠組み(観測・評価・コスト・ガードレール)を先に押さえる',
+      'AgentCore での具体実装に落とし込む'
+    ],
+    sources: [
+      { category: 'LLMOps 上位概念', items: [
+        { label: 'Anthropic "Demystifying evals for AI agents"', url: 'https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents' },
+        { label: 'Langfuse 公式ドキュメント', url: 'https://langfuse.com/docs' },
+        { label: '御田『AIエージェント開発／運用入門』Langfuse・Ragas・Guardrails 章の再読', url: null },
+        { label: 'AWS Bedrock のコスト構造資料', url: null }
+      ]},
+      { category: 'AgentCore 公式・解説', items: [
+        { label: 'AWS 公式「Amazon Bedrock AgentCore のご紹介」', url: 'https://aws.amazon.com/jp/blogs/news/introducing-amazon-bedrock-agentcore-securely-deploy-and-operate-ai-agents-at-any-scale/' },
+        { label: 'AWS 公式「エンタープライズにおける AI エージェント: AgentCore 活用ベストプラクティス」', url: 'https://aws.amazon.com/jp/blogs/news/ai-agents-in-enterprises-best-practices-with-amazon-bedrock-agentcore/' },
+        { label: 'builders.flash「モダンな UI の AI エージェントを IaC 付きで構築」', url: 'https://aws.amazon.com/jp/builders-flash/202604/bedrock-agentcore-modern-ai-agent/' },
+        { label: 'クラスメソッド DevelopersIO(AgentCore 解説シリーズ)', url: 'https://dev.classmethod.jp/articles/amazon-bedrock-agentcore-developersio-2025-osaka/' },
+        { label: 'NIFTY engineering', url: 'https://engineering.nifty.co.jp/blog/36071' },
+        { label: 'Qiita「5 分で出来る Amazon Bedrock AgentCore 入門」', url: 'https://qiita.com/inoue_d/items/e38940fff7a31b8fc7c7' },
+        { label: 'Qiita「AgentCore Harness を活用した AI エージェント開発」', url: 'https://qiita.com/ys-yoshida/items/d622adb43ad28c870510' }
+      ]},
+      { category: 'AgentCore ハンズオン(GitHub)', items: [
+        { label: 'prototype-to-production', url: 'https://github.com/aws-samples/sample-amazon-bedrock-agentcore-prototype-to-production' },
+        { label: 'Strands + Nova', url: 'https://github.com/aws-samples/sample-bedrock-agentcore-with-strands-and-nova' },
+        { label: 'マルチエージェント + 複数フレームワーク', url: 'https://github.com/aws-samples/sample-multi-agent-framework-protocol-agentcore-workshop' }
+      ]}
+    ],
+    goals: [
+      'LLMOps の 4 軸(観測・評価・コスト・ガードレール)を語彙として持っている',
+      'AgentCore の主要コンポーネント(Runtime / Memory / Identity / Gateway / Observability / Browser / Code Interpreter / Evaluations / Harness)が、LLMOps のどの軸の実装かを説明できる',
+      '自分で 1 個エージェントをデプロイできる',
+      'OSS(Langfuse)で実装する場合との違いを比較して語れる'
+    ]
+  },
+  {
+    id: 4,
+    title: 'ソフトウェアテスト + TDD / SDD / EDD',
+    done: false,
+    steps: [],
+    sources: [
+      { category: 'A. ソフトウェアテストの基礎', items: [
+        { label: '高橋寿一『知識ゼロから学ぶソフトウェアテスト』改訂版', url: null },
+        { label: '仙塲大也『単体テストの考え方／使い方』', url: null },
+        { label: 'Martin Fowler のテストピラミッド解説ブログ', url: 'https://martinfowler.com/articles/practical-test-pyramid.html' }
+      ]},
+      { category: 'B. TDD', items: [
+        { label: 'Kent Beck『テスト駆動開発』', url: 'https://www.amazon.co.jp/dp/4274217884' },
+        { label: 'Kent Beck『Tidy First?』', url: 'https://www.amazon.co.jp/dp/4814400918' }
+      ]},
+      { category: 'C. SDD', items: [
+        { label: 'GitHub spec-kit', url: 'https://github.com/github/spec-kit' },
+        { label: 'ITmedia「仕様駆動開発(Spec-driven development)とは?」', url: 'https://atmarkit.itmedia.co.jp/ait/articles/2510/07/news022.html' }
+      ]},
+      { category: 'D. EDD', items: [
+        { label: 'Anthropic "Demystifying evals for AI agents"', url: 'https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents' },
+        { label: 'Microsoft Azure-Samples/eval-driven-agents', url: 'https://github.com/Azure-Samples/eval-driven-agents' },
+        { label: 'evaldriven.org', url: 'https://evaldriven.org/' }
+      ]}
+    ],
+    goals: [
+      '4 つの手法の関係(決定的ソフトウェア vs 確率的システム、開発順序の作法)が説明できる',
+      '研修で AI 時代の品質保証フレームとして教えられる',
+      '委託先提案に対して「テスト戦略・評価戦略」の論点で議論できる'
+    ]
+  },
+  {
+    id: 5,
+    title: 'IaC(AgentCore デプロイ文脈中心 + 基本概念)',
+    done: false,
+    steps: [],
+    sources: [
+      { category: '基本概念', items: [
+        { label: 'Martin Fowler "Infrastructure as Code"', url: 'https://martinfowler.com/bliki/InfrastructureAsCode.html' },
+        { label: 'クラスメソッド「IaC とは何か」解説記事', url: null }
+      ]},
+      { category: 'AWS CDK', items: [
+        { label: 'AWS CDK 公式ワークショップ', url: 'https://cdkworkshop.com/' },
+        { label: 'AWS CDK 開発者ガイド(日本語)', url: 'https://docs.aws.amazon.com/ja_jp/cdk/v2/guide/home.html' },
+        { label: 'AgentCore 公式ハンズオンの IaC 部分(prototype-to-production リポジトリ内)', url: null }
+      ]},
+      { category: '他ツール比較', items: [
+        { label: 'クラスメソッド DevelopersIO Terraform vs CDK 比較記事', url: null },
+        { label: 'HashiCorp 公式 Terraform 入門ドキュメント', url: 'https://developer.hashicorp.com/terraform/intro' }
+      ]}
+    ],
+    goals: [
+      'AgentCore を CDK でデプロイできる',
+      'IaC の基本概念(宣言的記述、状態管理、ドリフト)を説明できる',
+      'CDK / CloudFormation / Terraform の使い分けが語彙として語れる'
+    ]
+  },
+  {
+    id: 6,
+    title: 'AIコスト管理ダッシュボード構築のためのインプット',
+    done: false,
+    steps: [],
+    sources: [
+      { category: 'LLM コスト指標', items: [
+        { label: 'Anthropic "Demystifying evals" のコスト・効率セクション', url: 'https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents' },
+        { label: 'Langfuse Cost tracking', url: 'https://langfuse.com/docs' }
+      ]},
+      { category: 'データソース', items: [
+        { label: 'AWS Bedrock invocation logs 公式ドキュメント', url: null },
+        { label: 'AWS Cost and Usage Reports(CUR)の Bedrock タグ付け', url: null },
+        { label: 'CloudWatch メトリクスの Bedrock 関連項目', url: null }
+      ]},
+      { category: '可視化プラットフォーム', items: [
+        { label: 'Langfuse 公式ドキュメント', url: 'https://langfuse.com/docs' },
+        { label: 'Amazon Managed Grafana', url: 'https://docs.aws.amazon.com/grafana/' },
+        { label: 'Datadog LLM Observability', url: 'https://docs.datadoghq.com/llm_observability/' },
+        { label: 'Grafana 公式チュートリアル(OSS 版)', url: null }
+      ]},
+      { category: 'ダッシュボード設計', items: [
+        { label: 'Grafana ダッシュボード設計のベストプラクティス', url: null }
+      ]}
+    ],
+    goals: [
+      '必要な指標の定義と算出ロジックを社内で合意できる',
+      'データソース → 可視化までのアーキテクチャを描ける',
+      '選定したプラットフォームで実データを使ったプロトタイプが動く'
+    ]
+  },
+  {
+    id: 7,
+    title: 'CI/CD(GitHub Actions)の基礎',
+    done: false,
+    steps: [],
+    sources: [
+      { category: null, items: [
+        { label: '野村友規『GitHub CI/CD 実践ガイド』', url: 'https://www.amazon.co.jp/dp/B0D4DBYJJ9' },
+        { label: 'GitHub Actions 公式ドキュメント', url: 'https://docs.github.com/ja/actions' }
+      ]}
+    ],
+    goals: []
+  },
+  {
+    id: 8,
+    title: 'フロントエンド(mizdra スライドをアンカーに進める)',
+    done: false,
+    steps: [
+      '前段: 最低限の JS 文法を Claude Code と対話しながら 1〜2 時間で吸収',
+      '本体: mizdra「60 分で学ぶ最新 Web フロントエンド」を頭から読了',
+      '応用: Next.js Learn → Vercel AI SDK + shadcn/ui で実装に移行'
+    ],
+    sources: [
+      { category: null, items: [
+        { label: 'mizdra「60 分で学ぶ最新 Web フロントエンド」', url: 'https://speakerdeck.com/mizdra/geek-camp-2026-frontend' },
+        { label: 'Next.js Learn', url: 'https://nextjs.org/learn' },
+        { label: 'Vercel AI SDK', url: 'https://sdk.vercel.ai/docs' },
+        { label: 'React 公式チュートリアル', url: 'https://ja.react.dev/learn' }
+      ]}
+    ],
+    goals: []
+  }
+];
+
+/* ─── localStorage ───────────────────────────── */
+function loadChecked() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveChecked(obj) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+}
+function isChecked(id, checked) {
+  const item = DATA.find(d => d.id === id);
+  return id in checked ? checked[id] : item.done;
+}
+
+/* ─── State ──────────────────────────────────── */
+const openSet = new Set();
+let filterActive = false;
+
+/* ─── HTML builder ───────────────────────────── */
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function buildBodyHTML(item) {
+  let html = '';
+
+  if (item.steps.length > 0) {
+    html += `<div class="detail-section">
+      <p class="detail-heading">進め方</p>
+      <ol class="step-list">${item.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+    </div>`;
+  }
+
+  const hasSources = item.sources.some(g => g.items.length > 0);
+  if (hasSources) {
+    let sg = '';
+    item.sources.forEach(group => {
+      sg += '<div class="link-group">';
+      if (group.category) sg += `<p class="link-group-label">${esc(group.category)}</p>`;
+      sg += '<ul class="link-list">';
+      group.items.forEach(link => {
+        if (link.url) {
+          sg += `<li><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">${esc(link.label)}</a></li>`;
+        } else {
+          sg += `<li><span class="link-plain">${esc(link.label)}</span></li>`;
+        }
+      });
+      sg += '</ul></div>';
+    });
+    html += `<div class="detail-section">
+      <p class="detail-heading">インプット元</p>${sg}
+    </div>`;
+  }
+
+  if (item.goals.length > 0) {
+    html += `<div class="detail-section">
+      <p class="detail-heading">完了目安</p>
+      <ul class="goal-list">${item.goals.map(g => `<li>${esc(g)}</li>`).join('')}</ul>
+    </div>`;
+  }
+
+  return html;
+}
+
+function buildCard(item, done) {
+  const card = document.createElement('article');
+  card.className = ['pbi-card', done && 'is-done', openSet.has(item.id) && 'is-open'].filter(Boolean).join(' ');
+  card.dataset.id = item.id;
+
+  const checkArea = done
+    ? '<span class="done-mark">✅</span>'
+    : '<div class="custom-checkbox"></div>';
+
+  card.innerHTML = `
+    <div class="pbi-header">
+      <div class="pbi-number-area">${checkArea}</div>
+      <div class="pbi-title-area">
+        <p class="pbi-title">${esc(item.title)}</p>
+      </div>
+      <svg class="pbi-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="pbi-body-wrap">
+      <div class="pbi-body">
+        <div class="pbi-body-inner">${buildBodyHTML(item)}</div>
+      </div>
+    </div>
+  `;
+
+  card.querySelector('.pbi-number-area').addEventListener('click', e => {
+    e.stopPropagation();
+    toggleCheck(item.id, card);
+  });
+
+  card.querySelector('.pbi-header').addEventListener('click', () => {
+    toggleOpen(item.id, card);
+  });
+
+  return card;
+}
+
+/* ─── Toggle ─────────────────────────────────── */
+function toggleCheck(id, card) {
+  const checked = loadChecked();
+  const nowChecked = !isChecked(id, checked);
+  checked[id] = nowChecked;
+  saveChecked(checked);
+
+  card.classList.toggle('is-done', nowChecked);
+  card.querySelector('.pbi-number-area').innerHTML = nowChecked
+    ? '<span class="done-mark">✅</span>'
+    : '<div class="custom-checkbox"></div>';
+
+  if (filterActive && nowChecked) {
+    card.style.transition = 'opacity .25s ease-out';
+    card.style.opacity = '0';
+    setTimeout(() => card.remove(), 260);
+  }
+}
+
+function toggleOpen(id, card) {
+  if (openSet.has(id)) {
+    openSet.delete(id);
+    card.classList.remove('is-open');
+  } else {
+    openSet.add(id);
+    card.classList.add('is-open');
+  }
+}
+
+/* ─── Render ─────────────────────────────────── */
+function renderList() {
+  const checked = loadChecked();
+  const list = document.getElementById('pbiList');
+  list.innerHTML = '';
+
+  const items = filterActive
+    ? DATA.filter(d => !isChecked(d.id, checked))
+    : DATA;
+
+  items.forEach(item => list.appendChild(buildCard(item, isChecked(item.id, checked))));
+}
+
+/* ─── Toolbar ────────────────────────────────── */
+document.getElementById('btnExpandAll').addEventListener('click', () => {
+  DATA.forEach(d => openSet.add(d.id));
+  document.querySelectorAll('.pbi-card').forEach(c => c.classList.add('is-open'));
+});
+
+document.getElementById('btnCollapseAll').addEventListener('click', () => {
+  openSet.clear();
+  document.querySelectorAll('.pbi-card').forEach(c => c.classList.remove('is-open'));
+});
+
+document.getElementById('btnFilter').addEventListener('click', () => {
+  filterActive = !filterActive;
+  openSet.clear();
+  document.getElementById('btnFilter').classList.toggle('is-active', filterActive);
+  document.getElementById('btnFilter').textContent = filterActive ? '☰ すべて表示' : '☰ 未完了のみ表示';
+  renderList();
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  if (confirm('すべての完了状態をリセットしますか？\nこの操作は元に戻せません。')) {
+    localStorage.removeItem(STORAGE_KEY);
+    openSet.clear();
+    filterActive = false;
+    document.getElementById('btnFilter').classList.remove('is-active');
+    document.getElementById('btnFilter').textContent = '☰ 未完了のみ表示';
+    renderList();
+  }
+});
+
+/* ─── Init ───────────────────────────────────── */
+renderList();
+</script>
+</body>
+</html>
