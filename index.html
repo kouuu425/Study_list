@@ -389,6 +389,51 @@ const STORAGE_KEY = 'pbl_v1';
 
 const DATA = [
   {
+    id: 9,
+    title: 'AIアプリケーションのコスト管理・可視化(RAG・エージェント全レイヤー対応)',
+    done: false,
+    steps: [
+      'ブロック①: AIアプリのコスト構造を体系的に理解する(LLM / RAG / エージェント / インフラの4レイヤー)',
+      'ブロック②: 計装設計を決める(OpenTelemetry + Langfuse OSS でアプリからデータを取り出す)',
+      'ブロック③: データパイプラインを設計・構築する(Prometheus or ClickHouse → Grafana)',
+      'ブロック④: Grafana on EC2 でダッシュボードを実装する',
+      'ブロック⑤: デモシナリオと合成データを設計する(AWS Summit 展示用)'
+    ],
+    sources: [
+      { category: 'ブロック① コスト構造(概念)', items: [
+        { label: 'Anthropic 料金ページ', url: 'https://www.anthropic.com/pricing' },
+        { label: 'AWS Bedrock 料金ページ', url: 'https://aws.amazon.com/jp/bedrock/pricing/' },
+        { label: 'Langfuse Cost tracking ドキュメント', url: 'https://langfuse.com/docs/model-usage-and-cost' },
+        { label: 'Anthropic "Demystifying evals" のコスト・効率セクション', url: 'https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents' },
+        { label: 'Pinecone「What is RAG pricing?」', url: 'https://www.pinecone.io/learn/rag-cost/' }
+      ]},
+      { category: 'ブロック② 計装', items: [
+        { label: 'OpenTelemetry Gen AI semantic conventions', url: 'https://opentelemetry.io/docs/specs/semconv/gen-ai/' },
+        { label: 'Langfuse self-host ドキュメント', url: 'https://langfuse.com/docs/deployment/self-host' },
+        { label: 'Langfuse SDK ドキュメント(Python / JS)', url: 'https://langfuse.com/docs/sdk' },
+        { label: 'AWS Bedrock invocation logs 公式ドキュメント', url: 'https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html' }
+      ]},
+      { category: 'ブロック③ データパイプライン', items: [
+        { label: 'Prometheus 公式ドキュメント', url: 'https://prometheus.io/docs/introduction/overview/' },
+        { label: 'Grafana × Prometheus データソース設定', url: 'https://grafana.com/docs/grafana/latest/datasources/prometheus/' },
+        { label: 'Grafana × CloudWatch データソース設定', url: 'https://grafana.com/docs/grafana/latest/datasources/aws-cloudwatch/' },
+        { label: 'Langfuse × ClickHouse self-host 構成', url: 'https://langfuse.com/docs/deployment/self-host' }
+      ]},
+      { category: 'ブロック④ Grafana 実装', items: [
+        { label: 'Grafana 公式 Getting Started', url: 'https://grafana.com/docs/grafana/latest/getting-started/build-first-dashboard/' },
+        { label: 'Grafana ダッシュボード設計ベストプラクティス', url: 'https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/best-practices/' },
+        { label: 'Docker Compose で Grafana + Prometheus を立てる(公式サンプル)', url: 'https://github.com/grafana/grafana/tree/main/devenv' }
+      ]}
+    ],
+    goals: [
+      'AIアプリの全レイヤー(LLM / RAG / エージェント / インフラ)のコスト構造を説明できる',
+      'OpenTelemetry または Langfuse でアプリのLLM使用量を計装・取得できる',
+      'Prometheus + Grafana(または同等スタック)をEC2上に構築できる',
+      'Cost Per Request / Cache Hit Rate / タスクあたりコストなどの主要指標をGrafanaで可視化できる',
+      'AWS Summit で展示できるレベルのデモダッシュボードを設計・実装できる'
+    ]
+  },
+  {
     id: 1,
     title: 'Claude with Amazon Bedrock(Anthropic公式講座)',
     done: true,
@@ -504,37 +549,6 @@ const DATA = [
       'AgentCore を CDK でデプロイできる',
       'IaC の基本概念(宣言的記述、状態管理、ドリフト)を説明できる',
       'CDK / CloudFormation / Terraform の使い分けが語彙として語れる'
-    ]
-  },
-  {
-    id: 6,
-    title: 'AIコスト管理ダッシュボード構築のためのインプット',
-    done: false,
-    steps: [],
-    sources: [
-      { category: 'LLM コスト指標', items: [
-        { label: 'Anthropic "Demystifying evals" のコスト・効率セクション', url: 'https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents' },
-        { label: 'Langfuse Cost tracking', url: 'https://langfuse.com/docs' }
-      ]},
-      { category: 'データソース', items: [
-        { label: 'AWS Bedrock invocation logs 公式ドキュメント', url: null },
-        { label: 'AWS Cost and Usage Reports(CUR)の Bedrock タグ付け', url: null },
-        { label: 'CloudWatch メトリクスの Bedrock 関連項目', url: null }
-      ]},
-      { category: '可視化プラットフォーム', items: [
-        { label: 'Langfuse 公式ドキュメント', url: 'https://langfuse.com/docs' },
-        { label: 'Amazon Managed Grafana', url: 'https://docs.aws.amazon.com/grafana/' },
-        { label: 'Datadog LLM Observability', url: 'https://docs.datadoghq.com/llm_observability/' },
-        { label: 'Grafana 公式チュートリアル(OSS 版)', url: null }
-      ]},
-      { category: 'ダッシュボード設計', items: [
-        { label: 'Grafana ダッシュボード設計のベストプラクティス', url: null }
-      ]}
-    ],
-    goals: [
-      '必要な指標の定義と算出ロジックを社内で合意できる',
-      'データソース → 可視化までのアーキテクチャを描ける',
-      '選定したプラットフォームで実データを使ったプロトタイプが動く'
     ]
   },
   {
